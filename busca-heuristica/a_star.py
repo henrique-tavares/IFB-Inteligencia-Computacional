@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import defaultdict
-from typing import Callable, Dict, Iterable, List, NamedTuple, Set, Tuple
+from typing import Callable, Dict, List, NamedTuple, Set, Tuple
 from time import time
 
 
@@ -35,12 +35,12 @@ class Graph:
     def __setitem__(self, key, item: Set[Edge]) -> None:
         self.elements[key] = item
 
-    def add(self, vertice: str, edges: Iterable[Edge], bidirectional: bool = False) -> None:
+    def add(self, vertice: str, *edges: Edge, bidirectional: bool = False) -> None:
         self[vertice] |= set(edges)
 
         if bidirectional:
             for edge in edges:
-                self.add(edge.city, [Edge(vertice, edge.distance)])
+                self.add(edge.city, Edge(vertice, edge.distance))
 
     def a_star(
         self,
@@ -58,7 +58,7 @@ class Graph:
         if current == destination:
             return path, cummulative_distance
 
-        next_vertice = min(
+        next_vertice, cummulative_distance, _ = min(
             (
                 (edge.city, cummulative_distance + edge.distance, heuristic(edge.city))
                 for edge in self[current]
@@ -67,7 +67,7 @@ class Graph:
             key=lambda e: e[1] + e[2],
         )
 
-        return self.a_star(next_vertice[0], destination, heuristic, next_vertice[1], path.copy())
+        return self.a_star(next_vertice, destination, heuristic, cummulative_distance, path.copy())
 
 
 def heuristic_outer() -> Callable[[str], int]:
@@ -103,48 +103,48 @@ def heuristic_outer() -> Callable[[str], int]:
 if __name__ == "__main__":
     g = Graph()
 
-    g.add("Arad", [Edge("Zerind", 75), Edge("Sibiu", 140), Edge("Timisoara", 118)])
+    g.add("Arad", Edge("Zerind", 75), Edge("Sibiu", 140), Edge("Timisoara", 118))
     g.add(
         "Bucharest",
-        [
-            Edge("Pitesti", 101),
-            Edge("Fagaras", 211),
-            Edge("Urziceni", 85),
-            Edge("Giurgiu", 90),
-        ],
+        Edge("Pitesti", 101),
+        Edge("Fagaras", 211),
+        Edge("Urziceni", 85),
+        Edge("Giurgiu", 90),
     )
     g.add(
         "Craiova",
-        [Edge("Dobreta", 120), Edge("Rimnicu Vilcea", 146), Edge("Pitesti", 138)],
+        Edge("Dobreta", 120),
+        Edge("Rimnicu Vilcea", 146),
+        Edge("Pitesti", 138),
     )
-    g.add("Dobreta", [Edge("Mehadia", 75), Edge("Craiova", 120)])
-    g.add("Eforie", [Edge("Hirsova", 86)])
-    g.add("Fagaras", [Edge("Sibiu", 99), Edge("Bucharest", 211)])
-    g.add("Giurgiu", [Edge("Bucharest", 90)])
-    g.add("Hirsova", [Edge("Urziceni", 98), Edge("Eforie", 86)])
-    g.add("Iasi", [Edge("Neamt", 87), Edge("Vaslui", 92)])
-    g.add("Lugoj", [Edge("Timisoara", 111), Edge("Mehadia", 70)])
-    g.add("Mehadia", [Edge("Lugoj", 70), Edge("Dobreta", 75)])
-    g.add("Neamt", [Edge("Iasi", 87)])
-    g.add("Oradea", [Edge("Sibiu", 151), Edge("Zerind", 71)])
+    g.add("Dobreta", Edge("Mehadia", 75), Edge("Craiova", 120))
+    g.add("Eforie", Edge("Hirsova", 86))
+    g.add("Fagaras", Edge("Sibiu", 99), Edge("Bucharest", 211))
+    g.add("Giurgiu", Edge("Bucharest", 90))
+    g.add("Hirsova", Edge("Urziceni", 98), Edge("Eforie", 86))
+    g.add("Iasi", Edge("Neamt", 87), Edge("Vaslui", 92))
+    g.add("Lugoj", Edge("Timisoara", 111), Edge("Mehadia", 70))
+    g.add("Mehadia", Edge("Lugoj", 70), Edge("Dobreta", 75))
+    g.add("Neamt", Edge("Iasi", 87))
+    g.add("Oradea", Edge("Sibiu", 151), Edge("Zerind", 71))
     g.add(
         "Pitesti",
-        [Edge("Bucharest", 101), Edge("Craiova", 138), Edge("Rimnicu Vilcea", 97)],
+        Edge("Bucharest", 101),
+        Edge("Craiova", 138),
+        Edge("Rimnicu Vilcea", 97),
     )
-    g.add("Rimnicu Vilcea", [Edge("Pitesti", 97), Edge("Craiova", 146), Edge("Sibiu", 80)])
+    g.add("Rimnicu Vilcea", Edge("Pitesti", 97), Edge("Craiova", 146), Edge("Sibiu", 80))
     g.add(
         "Sibiu",
-        [
-            Edge("Fagaras", 99),
-            Edge("Rimnicu Vilcea", 80),
-            Edge("Arad", 140),
-            Edge("Oradea", 151),
-        ],
+        Edge("Fagaras", 99),
+        Edge("Rimnicu Vilcea", 80),
+        Edge("Arad", 140),
+        Edge("Oradea", 151),
     )
-    g.add("Timisoara", [Edge("Arad", 118), Edge("Lugoj", 111)])
-    g.add("Urziceni", [Edge("Vaslui", 142), Edge("Hirsova", 98), Edge("Bucharest", 85)])
-    g.add("Vaslui", [Edge("Urziceni", 142), Edge("Iasi", 92)])
-    g.add("Zerind", [Edge("Oradea", 71), Edge("Arad", 75)])
+    g.add("Timisoara", Edge("Arad", 118), Edge("Lugoj", 111))
+    g.add("Urziceni", Edge("Vaslui", 142), Edge("Hirsova", 98), Edge("Bucharest", 85))
+    g.add("Vaslui", Edge("Urziceni", 142), Edge("Iasi", 92))
+    g.add("Zerind", Edge("Oradea", 71), Edge("Arad", 75))
 
     for vertice in g.elements:
         start = time()
