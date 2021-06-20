@@ -29,6 +29,9 @@ class Graph:
             + "}"
         )
 
+    def __contains__(self, item: str) -> bool:
+        return item in self.elements
+
     def __getitem__(self, item: str) -> Set[Edge]:
         return self.elements[item]
 
@@ -52,20 +55,28 @@ class Graph:
     ) -> Tuple[List[str], int]:
         if path is None:
             path = []
+            if destination != "Bucharest":
+                raise ValueError(f"A cidade de destino: '{destination}' não é válida.")
+
+        if current not in self:
+            raise ValueError(f"A cidade: '{current}' não foi encontrada no mapa.")
 
         path.append(current)
 
         if current == destination:
             return path, cummulative_distance
 
-        next_vertice, cummulative_distance, _ = min(
-            (
-                (edge.city, cummulative_distance + edge.distance, heuristic(edge.city))
-                for edge in self[current]
-                if edge.city not in path
-            ),
-            key=lambda e: e[1] + e[2],
-        )
+        try:
+            next_vertice, cummulative_distance, _ = min(
+                (
+                    (edge.city, cummulative_distance + edge.distance, heuristic(edge.city))
+                    for edge in self[current]
+                    if edge.city not in path
+                ),
+                key=lambda e: e[1] + e[2],
+            )
+        except KeyError as e:
+            raise ValueError(f"A cidade: '{e.args[0]}' não existe na tabela de cidades para 'Bucharest'")
 
         return self.a_star(next_vertice, destination, heuristic, cummulative_distance, path.copy())
 
@@ -147,7 +158,10 @@ if __name__ == "__main__":
     g.add("Zerind", Edge("Oradea", 71), Edge("Arad", 75))
 
     for vertice in g.elements:
-        start = time()
-        res = g.a_star(vertice, "Bucharest", heuristic_outer())
-        finish = time()
-        print(f"{((finish - start) * 1000):.2f}ms", f"({res[1]:3d}Km)", " -> ".join(city for city in res[0]))
+        try:
+            start = time()
+            res = g.a_star(vertice, "Bucharest", heuristic_outer())
+            finish = time()
+            print(f"{((finish - start) * 1000):.2f}ms", f"({res[1]:3d}Km)", " -> ".join(city for city in res[0]))
+        except (ValueError, KeyError) as e:
+            print(e)
