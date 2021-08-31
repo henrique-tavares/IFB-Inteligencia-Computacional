@@ -25,12 +25,7 @@ class Node:
             return False
 
     def aux_repr(self, depth: int) -> str:
-        return (
-            depth * "  "
-            + self.city
-            + "\n"
-            + "".join(node.aux_repr(depth + 1) for node in self.children)
-        )
+        return depth * "  " + self.city + "\n" + "".join(node.aux_repr(depth + 1) for node in self.children)
 
 
 class Tree:
