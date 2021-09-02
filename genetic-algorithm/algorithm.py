@@ -41,9 +41,10 @@ class Genetic:
             self._mutation(individual)
 
         # Nova Geração
-        population_fitness = self._population_fitness()
+        population_fitness = self.population_fitness()
         new_generation = {
-            str(item[0]) for item in sorted(population_fitness.items(), key=lambda item: item[1], reverse=True)[:10]
+            str(item[0])
+            for item in sorted(population_fitness.items(), key=lambda item: item[1], reverse=True)[: self._individuals]
         }
 
         self.population = {str(i): self.population[individual] for i, individual in enumerate(new_generation)}
@@ -61,12 +62,12 @@ class Genetic:
 
         return self._fitness_func(sum(individual))
 
-    def _population_fitness(self) -> Dict[str, float]:
+    def population_fitness(self) -> Dict[str, float]:
         return {k: self._fitness(v) for k, v in self.population.items()}
 
     # Roleta ponderada
     def _selection(self) -> Set[str]:
-        population_fitness = self._population_fitness()
+        population_fitness = self.population_fitness()
         raw_roulette = {
             item[0]: item[1] for item in sorted(population_fitness.items(), key=lambda item: item[1], reverse=True)
         }
@@ -128,13 +129,21 @@ class Genetic:
         return random() * (upper_limit - lower_limit) + lower_limit
 
 
-def softplus(x: float) -> float:
-    return m.log(1 + m.exp(x))
+def sigmoid(x: float) -> float:
+    return 1 / (1 + m.exp(-x))
 
 
 if __name__ == "__main__":
 
-    g = Genetic(10, 5, 5, -5, softplus)
-    print(g.population, g._population_fitness(), sep="\n", end="\n\n")
-    g.next_generation()
-    print(g.population, g._population_fitness(), sep="\n", end="\n\n")
+    g = Genetic(10, 5, 5, -5, sigmoid)
+    print("Fitness da população inicial:", g.population_fitness(), sep="\n", end="\n\n")
+
+    # Critério de parada (todos os indivíduos com fitness igual à 1.0)
+    completed = False
+    gen = 1
+    while not completed:
+        g.next_generation()
+        completed = all(value == 1.0 for value in g.population_fitness().values())
+        gen += 1
+
+    print(f"Fitness da população final (geração: {gen})", g.population_fitness(), sep="\n", end="\n\n")
